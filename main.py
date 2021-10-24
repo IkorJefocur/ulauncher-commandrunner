@@ -40,7 +40,7 @@ class KeywordQueryListener(EventListener):
 			data = [command, *args]
 
 			if in_terminal:
-				terminal = shlex.split(extension.preferences['terminal'])
+				terminal = shlex.split(os.path.expandvars(extension.preferences['terminal']))
 				description = f'Launch "{terminal[0]}" with command "{command}"'
 				data = [*terminal, '--', *data]
 
