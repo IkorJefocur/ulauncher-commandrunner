@@ -9,21 +9,21 @@
       "id": "keyword",
       "type": "keyword",
       "name": "Run",
-      "description": "Run command in background",
+      "description": "Run command in background.",
       "default_value": "r"
     },
     {
       "id": "keyword_terminal",
       "type": "keyword",
       "name": "Run in Terminal",
-      "description": "Run command in terminal",
+      "description": "Run command in terminal.",
       "default_value": "t"
     },
     {
       "id": "terminal",
       "type": "input",
       "name": "Terminal command",
-      "description": "Terminal to run commands in",
+      "description": "Terminal to run commands in. Can be enviroment variable if prefixed with \"$\".",
       "default_value": "x-terminal-emulator"
     }
   ]
