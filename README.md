@@ -7,3 +7,4 @@ Command runner for ulauncher
 - Searching through all programs that stored in $PATH variable
 - Passing additional arguments
 - Launching in background as well as in terminal
+- Using all (almost) features of your favorite shell
