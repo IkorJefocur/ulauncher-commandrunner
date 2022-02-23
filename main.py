@@ -6,8 +6,8 @@ from ulauncher.api.shared.action.RenderResultListAction import RenderResultListA
 from ulauncher.api.shared.action.HideWindowAction import HideWindowAction
 from ulauncher.api.shared.action.ExtensionCustomAction import ExtensionCustomAction
 from ulauncher.api.shared.action.DoNothingAction import DoNothingAction
+import re
 import itertools
-import shlex
 import os
 import subprocess
 
@@ -21,34 +21,39 @@ class CommandRunner(Extension):
 		self.subscribe(KeywordQueryEvent, KeywordQueryListener())
 		self.subscribe(ItemEnterEvent, ItemEnterListener())
 
+	def command_param(self, name):
+		return os.path.expandvars(self.preferences[name])
+
+	def in_terminal(self, keyword):
+		return self.preferences['keyword_terminal'] == keyword
+
 class KeywordQueryListener(EventListener):
 
 	def on_event(self, event, extension):
 		query = event.get_argument()
 		if not query:
 			return DoNothingAction()
+		query = Expression(query)
 
+		in_terminal = extension.in_terminal(event.get_keyword())
+		commands = extension.commands.search(query.command)
+		commands = commands[:extension.items_limit]
 		result = []
-		in_terminal = event.get_keyword() == extension.preferences['keyword_terminal']
-		query = shlex.split(query)
-		commands = extension.commands.search(query[0])[:extension.items_limit]
-		args = query[1:]
-		argsDescription = shlex.join(args)
 
-		for command in commands:
-			description = f'Run command "{command}"'
-			data = [command, *args]
+		for variant in commands:
+			expression = Expression(query.data)
+			expression.command = variant
+			description = f'Run command "{variant}"'
 
 			if in_terminal:
-				terminal = shlex.split(os.path.expandvars(extension.preferences['terminal']))
-				description = f'Launch "{terminal[0]}" with command "{command}"'
-				data = [*terminal, '--', *data]
+				env = Expression(extension.command_param('terminal')).command
+				description = f'Launch "{env}" with command "{variant}"'
 
 			result.append(ExtensionResultItem(
 				icon='images/icon.svg',
-				name=f'{command} {argsDescription}',
+				name=str(expression),
 				description=description,
-				on_enter=ExtensionCustomAction(data)
+				on_enter=ExtensionCustomAction([expression, in_terminal])
 			))
 
 		return RenderResultListAction(result)
@@ -56,13 +61,13 @@ class KeywordQueryListener(EventListener):
 class ItemEnterListener(EventListener):
 
 	def on_event(self, event, extension):
-		command = event.get_data()
-		subprocess.run(
-			command,
-			stdout=subprocess.PIPE,
-			stdin=subprocess.PIPE,
-			stderr=subprocess.PIPE
-		)
+		expression, in_terminal = event.get_data()
+
+		if in_terminal:
+			expression = expression.wrap(extension.command_param('terminal'))
+		expression = expression.wrap(extension.command_param('shell'))
+
+		expression.run()
 
 class CommandList:
 
@@ -75,9 +80,45 @@ class CommandList:
 		self.items = set(files)
 
 	def search(self, word):
-		result = list(filter(lambda command: command.startswith(word), self.items))
+		search_fn = lambda command: command.startswith(word)
+		result = list(filter(search_fn, self.items))
 		result.sort(key=lambda command: len(command))
 		return result
+
+class Expression:
+
+	def __init__(self, data):
+		self.data = data
+
+	def __str__(self):
+		return self.data
+
+	@property
+	def command(self):
+		arg_break = self.data.find(' ')
+		return self.data[: arg_break if arg_break != -1 else len(self.data)]
+
+	@command.setter
+	def command(self, value):
+		self.data = self.data.replace(self.command, value, 1)
+
+	def run(self):
+		return subprocess.run(
+			self.data,
+			shell=True,
+			cwd=os.getenv('HOME'),
+			stdout=subprocess.PIPE,
+			stdin=subprocess.PIPE,
+			stderr=subprocess.PIPE
+		)
+
+	def wrap(self, wrapper, marker = '%'):
+		quote_escape = lambda match: '\\' * ((len(match[1]) + 1) * 2 - 1) + '"'
+		as_arg = '"' + re.sub(r'(\\*)"', quote_escape, self.data) + '"'
+
+		inject = lambda match: as_arg if match[1] else self.data
+		result = re.sub(rf'{marker}({marker})?', inject, str(wrapper))
+		return type(self)(result)
 
 if __name__ == '__main__':
 	CommandRunner().run()

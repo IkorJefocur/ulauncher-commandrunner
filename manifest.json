@@ -20,11 +20,18 @@
       "default_value": "t"
     },
     {
+      "id": "shell",
+      "type": "input",
+      "name": "Shell",
+      "description": "Additional wrapper for commands. Symbol \"%\" will be replaced with command as it, duplicated symbol will convert command to single argument. Can be enviroment variable if prefixed with \"$\".",
+      "default_value": "%"
+    },
+    {
       "id": "terminal",
       "type": "input",
       "name": "Terminal command",
-      "description": "Terminal to run commands in. Can be enviroment variable if prefixed with \"$\".",
-      "default_value": "x-terminal-emulator"
+      "description": "Terminal to run commands in. Has same format as shell setting.",
+      "default_value": "x-terminal-emulator -- %"
     }
   ]
 }
