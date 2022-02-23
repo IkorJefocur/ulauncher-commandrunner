@@ -19,7 +19,7 @@ class CommandRunner(Extension):
 		self.subscribe(KeywordQueryEvent, KeywordQueryListener())
 		self.subscribe(ItemEnterEvent, ItemEnterListener())
 
-	def command_param(self, name):
+	def command_preference(self, name):
 		return os.path.expandvars(self.preferences[name])
 
 	def in_terminal(self, keyword):
@@ -44,7 +44,7 @@ class KeywordQueryListener(EventListener):
 			description = f'Run command "{variant}"'
 
 			if in_terminal:
-				env = Expression(extension.command_param('terminal')).command
+				env = Expression(extension.command_preference('terminal')).command
 				description = f'Launch "{env}" with command "{variant}"'
 
 			result.append(ExtensionResultItem(
@@ -62,8 +62,8 @@ class ItemEnterListener(EventListener):
 		expression, in_terminal = event.get_data()
 
 		if in_terminal:
-			expression = expression.wrap(extension.command_param('terminal'))
-		expression = expression.wrap(extension.command_param('shell'))
+			expression = expression.wrap(extension.command_preference('terminal'))
+		expression = expression.wrap(extension.command_preference('shell'))
 
 		expression.run()
 
