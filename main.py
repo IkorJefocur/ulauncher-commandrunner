@@ -61,9 +61,9 @@ class ItemEnterListener(EventListener):
 	def on_event(self, event, extension):
 		expression, in_terminal = event.get_data()
 
+		expression = expression.wrap(extension.command_preference('shell'))
 		if in_terminal:
 			expression = expression.wrap(extension.command_preference('terminal'))
-		expression = expression.wrap(extension.command_preference('shell'))
 
 		expression.run()
 
