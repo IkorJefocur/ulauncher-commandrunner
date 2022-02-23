@@ -36,14 +36,14 @@ class Expression:
 	def command(self, value):
 		self.data = self.data.replace(self.command, value, 1)
 
-	def run(self):
+	def run(self, *args, **kwargs):
 		return subprocess.run(
 			self.data,
-			shell=True,
-			cwd=os.getenv('HOME'),
-			stdout=subprocess.PIPE,
-			stdin=subprocess.PIPE,
-			stderr=subprocess.PIPE
+			*args,
+			shell = True,
+			cwd = os.getenv('HOME'),
+			capture_output = True,
+			**kwargs
 		)
 
 	def wrap(self, wrapper, marker = '%'):
