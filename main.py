@@ -35,7 +35,7 @@ class KeywordQueryListener(EventListener):
 
 		in_terminal = extension.in_terminal(event.get_keyword())
 		commands = extension.commands.search(query.command)
-		commands = commands[:extension.items_limit]
+		commands = commands[: extension.items_limit]
 		result = []
 
 		for variant in commands:
