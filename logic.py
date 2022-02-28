@@ -16,7 +16,7 @@ class CommandList:
 	def search(self, word):
 		search_fn = lambda command: command.startswith(word)
 		result = list(filter(search_fn, self.items))
-		result.sort(key=lambda command: len(command))
+		result.sort(key = lambda command: len(command))
 		return result
 
 class Expression:
@@ -42,9 +42,9 @@ class Expression:
 			*args,
 			shell = True,
 			cwd = os.getenv('HOME'),
-			stdin=subprocess.PIPE,
-			stdout=subprocess.PIPE,
-			stderr=subprocess.PIPE,
+			stdin = subprocess.PIPE,
+			stdout = subprocess.PIPE,
+			stderr = subprocess.PIPE,
 			**kwargs
 		)
 

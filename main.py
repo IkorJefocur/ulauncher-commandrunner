@@ -48,10 +48,10 @@ class KeywordQueryListener(EventListener):
 				description = f'Launch "{env}" with command "{variant}"'
 
 			result.append(ExtensionResultItem(
-				icon='images/icon.svg',
-				name=str(expression),
-				description=description,
-				on_enter=ExtensionCustomAction([expression, in_terminal])
+				icon = 'images/icon.svg',
+				name = str(expression),
+				description = description,
+				on_enter = ExtensionCustomAction([expression, in_terminal])
 			))
 
 		return RenderResultListAction(result)
