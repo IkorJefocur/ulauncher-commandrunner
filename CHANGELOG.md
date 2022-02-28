@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1 (28-02-2022)
+
+### Bug fixes
+- Fixed script lock by subprocess, which makes plugin unavilable while some command already running.
+
 ## 1.0.0 (23-02-2022)
 
 ### Breaking changes

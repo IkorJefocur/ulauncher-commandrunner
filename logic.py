@@ -37,12 +37,14 @@ class Expression:
 		self.data = self.data.replace(self.command, value, 1)
 
 	def run(self, *args, **kwargs):
-		return subprocess.run(
+		return subprocess.Popen(
 			self.data,
 			*args,
 			shell = True,
 			cwd = os.getenv('HOME'),
-			capture_output = True,
+			stdin=subprocess.PIPE,
+			stdout=subprocess.PIPE,
+			stderr=subprocess.PIPE,
 			**kwargs
 		)
 
