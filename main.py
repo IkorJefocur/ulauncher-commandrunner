@@ -1,6 +1,7 @@
 from ulauncher.api.client.Extension import Extension
 from ulauncher.api.client.EventListener import EventListener
-from ulauncher.api.shared.event import KeywordQueryEvent, ItemEnterEvent
+from ulauncher.api.shared.event import \
+	KeywordQueryEvent, ItemEnterEvent, PreferencesEvent, PreferencesUpdateEvent
 from ulauncher.api.shared.item.ExtensionResultItem import ExtensionResultItem
 from ulauncher.api.shared.action.RenderResultListAction import RenderResultListAction
 from ulauncher.api.shared.action.HideWindowAction import HideWindowAction
@@ -15,15 +16,15 @@ class CommandRunner(Extension):
 		super().__init__()
 		self.commands = CommandList()
 		self.items_limit = items_limit
+		self.options = {}
 
 		self.subscribe(KeywordQueryEvent, KeywordQueryListener())
 		self.subscribe(ItemEnterEvent, ItemEnterListener())
-
-	def command_preference(self, name):
-		return os.path.expandvars(self.preferences[name])
+		self.subscribe(PreferencesEvent, PreferencesListener())
+		self.subscribe(PreferencesUpdateEvent, PreferencesUpdateListener())
 
 	def in_terminal(self, keyword):
-		return self.preferences['keyword_terminal'] == keyword
+		return self.options['keyword_terminal'] == keyword
 
 class KeywordQueryListener(EventListener):
 
@@ -44,7 +45,7 @@ class KeywordQueryListener(EventListener):
 			description = f'Run command "{variant}"'
 
 			if in_terminal:
-				env = Expression(extension.command_preference('terminal')).command
+				env = extension.options['terminal'].command
 				description = f'Launch "{env}" with command "{variant}"'
 
 			result.append(ExtensionResultItem(
@@ -61,11 +62,30 @@ class ItemEnterListener(EventListener):
 	def on_event(self, event, extension):
 		expression, in_terminal = event.get_data()
 
-		expression = expression.wrap(extension.command_preference('shell'))
+		expression = expression.wrap(extension.options['shell'])
 		if in_terminal:
-			expression = expression.wrap(extension.command_preference('terminal'))
+			expression = expression.wrap(extension.options['terminal'])
 
 		expression.run()
+
+class PreferencesManager(EventListener):
+
+	def save(self, key, value, old_value, extension):
+		if key == 'shell' or key == 'terminal':
+			value = Expression(os.path.expandvars(value))
+
+		extension.options[key] = value
+
+class PreferencesListener(PreferencesManager):
+
+	def on_event(self, event, extension):
+		for key, value in event.preferences.items():
+			self.save(key, value, None, extension)
+
+class PreferencesUpdateListener(PreferencesManager):
+
+	def on_event(self, event, extension):
+		self.save(event.id, event.new_value, event.old_value, extension)
 
 if __name__ == '__main__':
 	CommandRunner().run()
