@@ -32,6 +32,12 @@
       "name": "Terminal command",
       "description": "Terminal to run commands in. Has same format as shell setting.",
       "default_value": "x-terminal-emulator -- %"
+    },
+    {
+      "id": "commands",
+      "type": "input",
+      "name": "Command list getter",
+      "description": "Command which will be used to get additional commands, like shell aliases and functions. Should return list separated by line break."
     }
   ]
 }

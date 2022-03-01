@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0 (01-03-2022)
+
+### New features
+- Added support for setting additional commands that not listed in $PATH, such as aliases, functions or anything else.
+
 ## 1.0.1 (28-02-2022)
 
 ### Bug fixes

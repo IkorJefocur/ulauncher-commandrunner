@@ -26,6 +26,9 @@ class CommandRunner(Extension):
 	def in_terminal(self, keyword):
 		return self.options['keyword_terminal'] == keyword
 
+	def update_command_list(self):
+		self.commands.names = self.options['commands']
+
 class KeywordQueryListener(EventListener):
 
 	def on_event(self, event, extension):
@@ -71,10 +74,16 @@ class ItemEnterListener(EventListener):
 class PreferencesManager(EventListener):
 
 	def save(self, key, value, old_value, extension):
+		if key == 'commands':
+			output, error = Expression(value).run(text = True).communicate()
+			value = output.split('\n') if not error else []
+
 		if key == 'shell' or key == 'terminal':
 			value = Expression(os.path.expandvars(value))
 
 		extension.options[key] = value
+		if key == 'commands':
+			extension.update_command_list()
 
 class PreferencesListener(PreferencesManager):
 

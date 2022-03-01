@@ -5,13 +5,27 @@ import subprocess
 
 class CommandList:
 
-	def __init__(self, folders = os.getenv('PATH').split(':')):
+	def __init__(self, names = [], folders = os.getenv('PATH').split(':')):
 		folders = filter(lambda folder: os.access(folder, os.R_OK), folders)
 		files = map(lambda folder: filter(
 			lambda file: os.access(os.path.join(folder, file), os.X_OK)
 		, os.listdir(folder)), folders)
 		files = itertools.chain.from_iterable(files)
-		self.items = set(files)
+
+		self.names = names
+		self.files = set(files)
+
+	@property
+	def items(self):
+		return self.names.union(self.files)
+
+	@property
+	def names(self):
+		return self._names
+
+	@names.setter
+	def names(self, value):
+		self._names = set(filter(bool, value))
 
 	def search(self, word):
 		search_fn = lambda command: command.startswith(word)
