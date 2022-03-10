@@ -76,6 +76,9 @@ class PreferencesManager(EventListener):
 	def save(self, key, value, old_value, extension):
 		if key == 'commands':
 			output, error = Expression(value).run(text = True).communicate()
+			debug = open('debug.log', 'w')
+			debug.write(output + '\n----------\n' + error)
+			debug.close()
 			value = output.split('\n') if not error else []
 
 		if key == 'shell' or key == 'terminal':
