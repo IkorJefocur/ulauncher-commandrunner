@@ -20,18 +20,16 @@ class CommandRunner(Extension):
 
 		self.subscribe(KeywordQueryEvent, KeywordQueryListener())
 		self.subscribe(ItemEnterEvent, ItemEnterListener())
-		self.subscribe(PreferencesEvent, PreferencesListener())
-		self.subscribe(PreferencesUpdateEvent, PreferencesUpdateListener())
 
 	def in_terminal(self, keyword):
-		return self.options['keyword_terminal'] == keyword
+		return self.preferences['keyword_terminal'] == keyword
 
 	def update_command_list(self):
-		self.commands.names = self.options['commands']
+		self.commands.names = self.preferences['commands']
 
 class KeywordQueryListener(EventListener):
 
-	def on_event(self, event, extension):
+	def on_event(self, event, extension: CommandRunner):
 		query = event.get_argument()
 		if not query:
 			return DoNothingAction()
@@ -48,7 +46,7 @@ class KeywordQueryListener(EventListener):
 			description = f'Run command "{variant}"'
 
 			if in_terminal:
-				env = extension.options['terminal'].command
+				env = extension.preferences['terminal'].split(' ')[0]
 				description = f'Launch "{env}" with command "{variant}"'
 
 			result.append(ExtensionResultItem(
@@ -65,36 +63,13 @@ class ItemEnterListener(EventListener):
 	def on_event(self, event, extension):
 		expression, in_terminal = event.get_data()
 
-		expression = expression.wrap(extension.options['shell'])
+		expression = expression.wrap(extension.preferences['shell'])
 		if in_terminal:
-			expression = expression.wrap(extension.options['terminal'])
+			expression = expression.wrap(extension.preferences['terminal'])
+			print(expression)
 
 		expression.run()
 
-class PreferencesManager(EventListener):
-
-	def save(self, key, value, old_value, extension):
-		if key == 'commands':
-			output, error = Expression(value).run(text = True).communicate()
-			value = output.split('\n') if not error else []
-
-		if key == 'shell' or key == 'terminal':
-			value = Expression(os.path.expandvars(value))
-
-		extension.options[key] = value
-		if key == 'commands':
-			extension.update_command_list()
-
-class PreferencesListener(PreferencesManager):
-
-	def on_event(self, event, extension):
-		for key, value in event.preferences.items():
-			self.save(key, value, None, extension)
-
-class PreferencesUpdateListener(PreferencesManager):
-
-	def on_event(self, event, extension):
-		self.save(event.id, event.new_value, event.old_value, extension)
 
 if __name__ == '__main__':
 	CommandRunner().run()
